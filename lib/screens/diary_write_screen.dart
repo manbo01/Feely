@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'image_preview_io.dart' if (dart.library.html) 'image_preview_stub.dart' as image_preview;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -29,7 +30,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
   final _contentController = TextEditingController();
   late List<String> _selectedEmotions;
   late int _intensity;
-  String? _imagePath;
+  List<String> _imagePaths = [];
   DiaryEntry? _existing;
   bool _loading = true;
   String _weatherDropdownValue = weatherOptionClear;
@@ -63,7 +64,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
         _contentController.text = entry.content;
         _selectedEmotions = List.from(entry.emotionTags);
         _intensity = entry.intensity;
-        _imagePath = entry.imagePath;
+        _imagePaths = List.from(entry.imagePaths);
         _loading = false;
       });
     } else if (mounted) {
@@ -92,7 +93,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
             content: _contentController.text.trim(),
             weatherText: _getWeatherText(),
             placeText: _placeController.text.trim(),
-            imagePath: _imagePath,
+            imagePaths: _imagePaths,
           )
         : DiaryEntry(
             id: const Uuid().v4(),
@@ -104,7 +105,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
             content: _contentController.text.trim(),
             weatherText: _getWeatherText(),
             placeText: _placeController.text.trim(),
-            imagePath: _imagePath,
+            imagePaths: _imagePaths,
           );
 
     await provider.saveEntry(entry);
@@ -124,26 +125,34 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
     final allTags = diaryProvider.allEmotionTags;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('일기 쓰기'),
-        actions: [
-          TextButton(
-            onPressed: _save,
-            child: const Text('저장'),
+        title: Text(
+          widget.entryId != null ? '일기 수정' : '새 일기',
+          style: const TextStyle(
+            color: Color(0xFF2D2D2D),
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
-        ],
+        ),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           children: [
-            _buildDateField(theme),
-            const SizedBox(height: 16),
+            _buildSectionLabel(theme, '날짜'),
+            const SizedBox(height: 8),
+            _buildDateLine(theme),
+            const SizedBox(height: 20),
+            _buildSectionLabel(theme, '시간'),
+            const SizedBox(height: 8),
+            _buildTimeLine(theme),
+            const SizedBox(height: 20),
             _buildSectionLabel(theme, '날씨'),
             const SizedBox(height: 8),
             Row(
@@ -180,12 +189,12 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
               TextFormField(
                 controller: _weatherController,
                 decoration: const InputDecoration(
-                  hintText: '날씨를 직접 입력하세요',
+                  hintText: '오늘 하늘은 어때요?',
                   border: OutlineInputBorder(),
                 ),
               ),
             ],
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             _buildSectionLabel(theme, '장소'),
             const SizedBox(height: 8),
             Row(
@@ -194,7 +203,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
                   child: TextFormField(
                     controller: _placeController,
                     decoration: const InputDecoration(
-                      hintText: '장소를 입력하세요',
+                      hintText: '어디에 계세요?',
                       prefixIcon: Icon(Icons.place_outlined),
                       border: OutlineInputBorder(),
                     ),
@@ -210,50 +219,69 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            _buildSectionLabel(theme, '감정 선택'),
+            const SizedBox(height: 24),
+            _buildSectionLabel(theme, '어떤 감정인가요?'),
             const SizedBox(height: 8),
             EmotionChipGrid(
               availableTags: allTags,
               selectedTags: _selectedEmotions,
               onChanged: (v) => setState(() => _selectedEmotions = v),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             _buildSectionLabel(theme, '감정 강도'),
             const SizedBox(height: 8),
             IntensitySlider(
               value: _intensity,
               onChanged: (v) => setState(() => _intensity = v),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             _buildSectionLabel(theme, '내용'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _contentController,
               maxLines: 6,
               decoration: const InputDecoration(
-                hintText: '오늘의 감정을 자유롭게 적어보세요.',
+                hintText: 'Dear Diary, 오늘은...',
                 border: OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
             ),
-            if (_imagePath != null) ...[
-              const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(Icons.image),
-                title: const Text('첨부된 사진'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => setState(() => _imagePath = null),
-                ),
-              ),
+            if (_imagePaths.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              _buildSectionLabel(theme, '첨부된 사진 (${_imagePaths.length}장)'),
+              const SizedBox(height: 8),
+              _buildImagePreviews(theme),
             ],
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: _pickImage,
-              icon: const Icon(Icons.add_photo_alternate),
-              label: const Text('사진 첨부 (선택)'),
+              icon: const Icon(Icons.add_a_photo_outlined),
+              label: const Text('사진 추가'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.primary,
+                side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.6)),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: FilledButton.icon(
+                onPressed: _save,
+                icon: const Icon(Icons.check, size: 22),
+                label: const Text('저장'),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -269,7 +297,8 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
     );
   }
 
-  Widget _buildDateField(ThemeData theme) {
+  Widget _buildDateLine(ThemeData theme) {
+    final dateStr = '${_date.year}년 ${_date.month}월 ${_date.day}일';
     return InkWell(
       onTap: () async {
         final picked = await showDatePicker(
@@ -278,18 +307,86 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
           firstDate: DateTime(2020),
           lastDate: DateTime(2030),
         );
-        if (picked != null) setState(() => _date = picked);
+        if (picked != null) {
+          setState(() => _date = DateTime(
+            picked.year,
+            picked.month,
+            picked.day,
+            _date.hour,
+            _date.minute,
+          ));
+        }
       },
       child: InputDecorator(
         decoration: const InputDecoration(
           prefixIcon: Icon(Icons.calendar_today),
           border: OutlineInputBorder(),
         ),
-        child: Text(
-          '${_date.year}년 ${_date.month}월 ${_date.day}일',
-          style: theme.textTheme.bodyLarge,
-        ),
+        child: Text(dateStr, style: theme.textTheme.bodyLarge),
       ),
+    );
+  }
+
+  Widget _buildTimeLine(ThemeData theme) {
+    final timeStr =
+        '${_date.hour.toString().padLeft(2, '0')}:${_date.minute.toString().padLeft(2, '0')}';
+    return InkWell(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: TimeOfDay.fromDateTime(_date),
+        );
+        if (picked != null) {
+          setState(() => _date = DateTime(
+            _date.year,
+            _date.month,
+            _date.day,
+            picked.hour,
+            picked.minute,
+          ));
+        }
+      },
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          prefixIcon: Icon(Icons.access_time),
+          border: OutlineInputBorder(),
+        ),
+        child: Text(timeStr, style: theme.textTheme.bodyLarge),
+      ),
+    );
+  }
+
+  Widget _buildImagePreviews(ThemeData theme) {
+    if (_imagePaths.isEmpty) return const SizedBox.shrink();
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: _imagePaths.asMap().entries.map((e) {
+        final index = e.key;
+        final path = e.value;
+        return SizedBox(
+          width: 100,
+          height: 100,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              image_preview.buildImageThumbnail(path),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: GestureDetector(
+                  onTap: () => setState(() => _imagePaths.removeAt(index)),
+                  child: const CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Colors.black54,
+                    child: Icon(Icons.close, size: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -363,8 +460,15 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
 
   Future<void> _pickImage() async {
     try {
-      final picker = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (picker != null && mounted) setState(() => _imagePath = picker.path);
+      final picker = ImagePicker();
+      final files = await picker.pickMultiImage();
+      if (files.isNotEmpty && mounted) {
+        setState(() {
+          for (final f in files) {
+            if (f.path.isNotEmpty) _imagePaths.add(f.path);
+          }
+        });
+      }
     } catch (_) {}
   }
 }

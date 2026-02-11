@@ -24,120 +24,149 @@ class CalendarSection extends StatelessWidget {
     final days = _buildDaysInMonth(currentMonth);
     final weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+    final primary = theme.colorScheme.primary;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: const Color(0xFFF8F7FC),
       child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        padding: const EdgeInsets.all(12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final contentWidth = constraints.maxWidth - 0;
+            const crossSpacing = 4.0;
+            const mainSpacing = 6.0;
+            final cellWidth = (contentWidth - 6 * crossSpacing) / 7;
+            const aspectRatio = 1.2;
+            final cellHeight = cellWidth / aspectRatio;
+            final gridHeight = 6 * cellHeight + 5 * mainSpacing;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: () {
-                    final prev = DateTime(
-                      currentMonth.year,
-                      currentMonth.month - 1,
-                    );
-                    onMonthChanged(prev);
-                  },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.chevron_left, color: primary),
+                      onPressed: () {
+                        final prev = DateTime(
+                          currentMonth.year,
+                          currentMonth.month - 1,
+                        );
+                        onMonthChanged(prev);
+                      },
+                    ),
+                    Text(
+                      monthFormat.format(currentMonth),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF2D2D2D),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.chevron_right, color: primary),
+                      onPressed: () {
+                        final next = DateTime(
+                          currentMonth.year,
+                          currentMonth.month + 1,
+                        );
+                        onMonthChanged(next);
+                      },
+                    ),
+                  ],
                 ),
-                Text(
-                  monthFormat.format(currentMonth),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: weekdays
+                      .map((d) => SizedBox(
+                            width: cellWidth.clamp(0.0, 40.0),
+                            child: Text(
+                              d,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: primary.withOpacity(0.9),
+                              ),
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  height: gridHeight,
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 7,
+                    mainAxisSpacing: mainSpacing,
+                    crossAxisSpacing: crossSpacing,
+                    childAspectRatio: aspectRatio,
+                    children: days.map((day) {
+                      if (day == null) return const SizedBox.shrink();
+                      final dayOnly = DateTime(day.year, day.month, day.day);
+                      final isSelected = dayOnly ==
+                          DateTime(
+                            selectedDate.year,
+                            selectedDate.month,
+                            selectedDate.day,
+                          );
+                      final hasEntry = datesWithEntries.any((d) =>
+                          d.year == day.year &&
+                          d.month == day.month &&
+                          d.day == day.day);
+
+                      return GestureDetector(
+                        onTap: () => onDateSelected(day),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected ? primary : null,
+                            shape: hasEntry && !isSelected
+                                ? BoxShape.circle
+                                : BoxShape.rectangle,
+                            borderRadius: isSelected
+                                ? BorderRadius.circular(8)
+                                : null,
+                            border: hasEntry && !isSelected
+                                ? Border.all(color: primary, width: 1.5)
+                                : null,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${day.day}',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF2D2D2D),
+                                ),
+                              ),
+                              if (hasEntry && !isSelected)
+                                Container(
+                                  width: 5,
+                                  height: 5,
+                                  margin: const EdgeInsets.only(top: 2),
+                                  decoration: BoxDecoration(
+                                    color: primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  onPressed: () {
-                    final next = DateTime(
-                      currentMonth.year,
-                      currentMonth.month + 1,
-                    );
-                    onMonthChanged(next);
-                  },
                 ),
               ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: weekdays
-                  .map((d) => SizedBox(
-                        width: 32,
-                        child: Text(
-                          d,
-                          style: theme.textTheme.bodySmall,
-                          textAlign: TextAlign.center,
-                        ),
-                      ))
-                  .toList(),
-            ),
-            const SizedBox(height: 8),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 7,
-              mainAxisSpacing: 8,
-              crossAxisSpacing: 4,
-              childAspectRatio: 1.1,
-              children: days.map((day) {
-                if (day == null) return const SizedBox.shrink();
-                final dayOnly = DateTime(day.year, day.month, day.day);
-                final isSelected = dayOnly ==
-                    DateTime(
-                      selectedDate.year,
-                      selectedDate.month,
-                      selectedDate.day,
-                    );
-                final hasEntry = datesWithEntries.any((d) =>
-                    d.year == day.year &&
-                    d.month == day.month &&
-                    d.day == day.day);
-
-                return GestureDetector(
-                  onTap: () => onDateSelected(day),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 2),
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? theme.colorScheme.primary.withOpacity(0.25)
-                          : null,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${day.day}',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight:
-                                isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected
-                                ? theme.colorScheme.primary
-                                : theme.textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                        if (hasEntry)
-                          Container(
-                            width: 6,
-                            height: 6,
-                            margin: const EdgeInsets.only(top: 2),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

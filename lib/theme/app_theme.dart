@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/app_settings.dart';
 
 class AppThemeData {
+  /// 라이트 테마용 라벤더 액센트 (스플래시·라이트 테마 공통)
+  static const Color feelyLavender = Color(0xFFB8A9C9);
+
   static ThemeData forTheme(AppTheme theme) {
     switch (theme) {
       case AppTheme.light:
@@ -20,15 +23,68 @@ class AppThemeData {
 
   static ThemeData get _light => ThemeData.light().copyWith(
         useMaterial3: true,
+        scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF5C9EAD),
+          seedColor: feelyLavender,
           brightness: Brightness.light,
-          primary: const Color(0xFF5C9EAD),
+          primary: feelyLavender,
+          surface: Colors.white,
         ),
-        appBarTheme: const AppBarTheme(
+        appBarTheme: AppBarTheme(
           centerTitle: true,
-          backgroundColor: Color(0xFF5C9EAD),
-          foregroundColor: Colors.white,
+          backgroundColor: Colors.white,
+          foregroundColor: const Color(0xFF2D2D2D),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: feelyLavender),
+          titleTextStyle: const TextStyle(
+            color: Color(0xFF2D2D2D),
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        cardTheme: CardThemeData(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          color: const Color(0xFFF8F7FC),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Color(0xFFE5E0F0)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: feelyLavender, width: 1.5),
+          ),
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: feelyLavender,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: feelyLavender,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
         ),
       );
 

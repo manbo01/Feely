@@ -50,13 +50,31 @@ class _MainScreenState extends State<MainScreen> {
       });
     }
 
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
+
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Feely'),
+        leading: IconButton(
+          icon: CircleAvatar(
+            radius: 18,
+            backgroundColor: primaryColor.withOpacity(0.2),
+            child: Icon(Icons.person_outline, size: 22, color: primaryColor),
+          ),
+          onPressed: () {},
+        ),
+        title: Text(
+          'Feely',
+          style: theme.appBarTheme.titleTextStyle?.copyWith(
+            color: const Color(0xFF2D2D2D),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => Navigator.pushNamed(context, '/settings'),
+            icon: Icon(Icons.notifications_outlined, color: primaryColor),
+            onPressed: () {},
           ),
         ],
       ),
@@ -90,27 +108,41 @@ class _MainScreenState extends State<MainScreen> {
                       },
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            DateFormat('yyyy년 M월 d일').format(_selectedDate),
-                            style: Theme.of(context).textTheme.titleLarge,
+                            '오늘의 일기',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF2D2D2D),
+                            ),
                           ),
-                          Text(
-                            '${_entriesForDate.length}개의 일기',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme.onSurfaceVariant,
-                                ),
+                          TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              '전체보기',
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        DateFormat('yyyy년 M월 d일').format(_selectedDate),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     if (_entriesForDate.isEmpty)
                       _EmptyDayPlaceholder(
                         onWrite: () => _openWriteForSelected(),
@@ -128,18 +160,41 @@ class _MainScreenState extends State<MainScreen> {
                             ),
                           )
                           .toList(),
-                    const SizedBox(height: 80),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: _openWriteForSelected,
-        icon: const Icon(Icons.edit),
-        label: const Text(
-          '일기 쓰기',
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
+        backgroundColor: primaryColor,
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        height: 64,
+        padding: EdgeInsets.zero,
+        notchMargin: 8,
+        shape: const CircularNotchedRectangle(),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Expanded(
+              child: _NavItem(
+                icon: Icons.bar_chart_outlined,
+                label: '통계',
+                onTap: () {},
+              ),
+            ),
+            const SizedBox(width: 56),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.settings_outlined,
+                label: '설정',
+                onTap: () => Navigator.pushNamed(context, '/settings'),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -156,6 +211,50 @@ class _MainScreenState extends State<MainScreen> {
       _entriesForDate = await provider.getEntriesForDate(_selectedDate);
       if (mounted) setState(() {});
     });
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 24, color: color),
+            const SizedBox(height: 2),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 11,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

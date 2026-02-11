@@ -9,7 +9,8 @@ class DiaryEntry {
   final String content;
   final String weatherText;
   final String placeText;
-  final String? imagePath;
+  /// 첨부 사진 경로 목록 (여러 장 지원)
+  final List<String> imagePaths;
 
   const DiaryEntry({
     required this.id,
@@ -21,8 +22,12 @@ class DiaryEntry {
     required this.content,
     this.weatherText = '',
     this.placeText = '',
-    this.imagePath,
+    this.imagePaths = const [],
   });
+
+  /// 이전 단일 imagePath 필드와 호환용 (첫 번째 사진 반환)
+  String? get imagePath =>
+      imagePaths.isNotEmpty ? imagePaths.first : null;
 
   DiaryEntry copyWith({
     String? id,
@@ -34,7 +39,7 @@ class DiaryEntry {
     String? content,
     String? weatherText,
     String? placeText,
-    String? imagePath,
+    List<String>? imagePaths,
   }) {
     return DiaryEntry(
       id: id ?? this.id,
@@ -46,7 +51,7 @@ class DiaryEntry {
       content: content ?? this.content,
       weatherText: weatherText ?? this.weatherText,
       placeText: placeText ?? this.placeText,
-      imagePath: imagePath ?? this.imagePath,
+      imagePaths: imagePaths ?? List.from(this.imagePaths),
     );
   }
 
@@ -61,11 +66,17 @@ class DiaryEntry {
       'content': content,
       'weatherText': weatherText,
       'placeText': placeText,
-      'imagePath': imagePath,
+      'imagePaths': imagePaths,
     };
   }
 
   factory DiaryEntry.fromJson(Map<String, dynamic> json) {
+    List<String> paths = [];
+    if (json['imagePaths'] != null) {
+      paths = List<String>.from(json['imagePaths'] as List);
+    } else if (json['imagePath'] != null) {
+      paths = [json['imagePath'] as String];
+    }
     return DiaryEntry(
       id: json['id'] as String,
       date: DateTime.parse(json['date'] as String),
@@ -76,7 +87,7 @@ class DiaryEntry {
       content: json['content'] as String? ?? '',
       weatherText: json['weatherText'] as String? ?? '',
       placeText: json['placeText'] as String? ?? '',
-      imagePath: json['imagePath'] as String?,
+      imagePaths: paths,
     );
   }
 }
