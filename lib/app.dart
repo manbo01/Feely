@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/diary_provider.dart';
 import 'providers/settings_provider.dart';
+import 'route_observer.dart';
 import 'screens/diary_detail_screen.dart';
 import 'screens/diary_write_screen.dart';
 import 'screens/main_screen.dart';
@@ -46,6 +47,7 @@ class FeelyApp extends StatelessWidget {
             theme: theme,
             locale: const Locale('ko'),
             debugShowCheckedModeBanner: false,
+            navigatorObservers: [routeObserver],
             home: const SplashThenMain(child: MainScreen()),
             routes: {
               '/settings': (context) => const SettingsScreen(),

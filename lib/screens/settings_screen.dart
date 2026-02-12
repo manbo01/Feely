@@ -17,20 +17,17 @@ class SettingsScreen extends StatelessWidget {
     final primary = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
         leading: IconButton(
-          icon: CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.grey.shade200,
-            child: Icon(Icons.arrow_back, size: 22, color: Colors.grey.shade700),
-          ),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           '설정',
           style: TextStyle(
-            color: Color(0xFF2D2D2D),
+            color: theme.colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -39,18 +36,18 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         children: [
-          _sectionHeader(theme, Icons.palette_outlined, '앱 모양'),
+          _sectionHeader(theme, Icons.palette_outlined, '테마 설정'),
           const SizedBox(height: 12),
           _themeSwatches(context, settings.theme),
           const SizedBox(height: 28),
-          _sectionHeader(theme, Icons.notifications_outlined, '일일 알림'),
+          _sectionHeader(theme, Icons.notifications_outlined, '일기 작성 알림'),
           const SizedBox(height: 12),
           _notificationCard(context, settings),
           const SizedBox(height: 28),
-          _sectionHeader(theme, Icons.storage_outlined, '데이터 및 개인정보'),
+          _sectionHeader(theme, Icons.storage_outlined, '데이터 관리 (준비 중)'),
           const SizedBox(height: 8),
           Text(
-            '감정 기록은 기기에 안전하게 저장됩니다. 필요 시 내보내기·가져오기를 이용하세요.',
+            '당신의 데이터를 안전하게 관리하세요 :)',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
               height: 1.4,
@@ -63,7 +60,7 @@ class SettingsScreen extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.download_outlined, size: 22),
-                  label: const Text('내보내기'),
+                  label: const Text('가져오기'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: primary,
                     side: BorderSide(color: primary.withOpacity(0.6)),
@@ -79,7 +76,7 @@ class SettingsScreen extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.upload_outlined, size: 22),
-                  label: const Text('가져오기'),
+                  label: const Text('내보내기'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: primary,
                     side: BorderSide(color: primary.withOpacity(0.6)),
@@ -104,7 +101,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '마음을 위한 공간',
+                  'Made with love for your peace of mind',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 12,
@@ -128,7 +125,7 @@ class SettingsScreen extends StatelessWidget {
           title,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2D2D2D),
+            color: theme.colorScheme.onSurface,
           ),
         ),
       ],
@@ -140,11 +137,10 @@ class SettingsScreen extends StatelessWidget {
     final provider = context.read<SettingsProvider>();
 
     final options = [
-      (AppTheme.light, '밝은', const Color(0xFFF5F5F5), const Color(0xFFE0E0E0)),
-      (AppTheme.dark, '어두운', const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)),
+      (AppTheme.light, '라이트', const Color(0xFFF5F5F5), const Color(0xFFE0E0E0)),
+      (AppTheme.dark, '다크', const Color(0xFF2D2D2D), const Color(0xFF1A1A1A)),
       (AppTheme.blue, '파랑', const Color(0xFF90CAF9), const Color(0xFF64B5F6)),
       (AppTheme.green, '초록', const Color(0xFFA5D6A7), const Color(0xFF81C784)),
-      (AppTheme.purple, '라벤더', const Color(0xFFCFC7E7), const Color(0xFFB8A9C9)),
     ];
 
     return Wrap(
@@ -176,7 +172,7 @@ class SettingsScreen extends StatelessWidget {
             Text(
               o.$2,
               style: theme.textTheme.labelSmall?.copyWith(
-                color: const Color(0xFF2D2D2D),
+                color: theme.colorScheme.onSurface,
               ),
             ),
           ],
@@ -203,15 +199,15 @@ class SettingsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '푸시 알림',
+                    '알림 설정',
                     style: theme.textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFF2D2D2D),
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '일기 작성 리마인더',
+                    '지정된 시간에 알림을 발송할까요?',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -231,19 +227,19 @@ class SettingsScreen extends StatelessWidget {
           '알림 시간',
           style: theme.textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF2D2D2D),
+            color: theme.colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          '언제 알림을 받을까요?',
+          '매일 몇 시에 알림을 발송할까요?',
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
         const SizedBox(height: 10),
         Material(
-          color: Colors.grey.shade100,
+          color: theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             onTap: () => _pickTime(context, provider, hour, minute),
@@ -262,7 +258,7 @@ class SettingsScreen extends StatelessWidget {
                     timeStr,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2D2D2D),
+                      color: theme.colorScheme.onSurface,
                     ),
                   ),
                 ],

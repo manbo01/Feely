@@ -86,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Preparing your safe space...',
+                'Preparing ...',
                 style: TextStyle(
                   fontSize: 14,
                   color: FeelySplashColors.textSecondary,

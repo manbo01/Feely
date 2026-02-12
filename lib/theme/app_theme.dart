@@ -16,8 +16,6 @@ class AppThemeData {
         return _blue;
       case AppTheme.green:
         return _green;
-      case AppTheme.purple:
-        return _purple;
     }
   }
 
@@ -88,19 +86,51 @@ class AppThemeData {
         ),
       );
 
-  static ThemeData get _dark => ThemeData.dark().copyWith(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF7EB8DA),
-          brightness: Brightness.dark,
-          primary: const Color(0xFF7EB8DA),
+  static ThemeData get _dark {
+    const scaffoldBg = Color(0xFF2D2D2D);
+    const surface = Color(0xFF3D3D3D);
+    const surfaceDim = Color(0xFF383838);
+    const outline = Color(0xFF707070);
+    final baseDark = ThemeData.dark().colorScheme;
+    return ThemeData.dark().copyWith(
+      useMaterial3: true,
+      scaffoldBackgroundColor: scaffoldBg,
+      colorScheme: baseDark.copyWith(
+        surface: scaffoldBg,
+        onSurface: Colors.white,
+        surfaceContainerHighest: surfaceDim,
+        onSurfaceVariant: const Color(0xFFE0E0E0),
+        outline: outline,
+        primary: Colors.white,
+        onPrimary: const Color(0xFF2D2D2D),
+      ),
+      appBarTheme: const AppBarTheme(
+        centerTitle: true,
+        backgroundColor: Color(0xFF2D2D2D),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          backgroundColor: Color(0xFF1E3A5F),
-          foregroundColor: Colors.white,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: surfaceDim,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: outline),
         ),
-      );
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.white70, width: 1.5),
+        ),
+      ),
+    );
+  }
 
   static ThemeData get _blue => ThemeData.light().copyWith(
         useMaterial3: true,
@@ -130,19 +160,6 @@ class AppThemeData {
         ),
       );
 
-  static ThemeData get _purple => ThemeData.light().copyWith(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF9B8BB8),
-          brightness: Brightness.light,
-          primary: const Color(0xFF9B8BB8),
-        ),
-        appBarTheme: const AppBarTheme(
-          centerTitle: true,
-          backgroundColor: Color(0xFF9B8BB8),
-          foregroundColor: Colors.white,
-        ),
-      );
 }
 
 /// 감정 강도 1~10에 따른 색상 (카드 배지 등).

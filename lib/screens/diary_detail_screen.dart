@@ -57,16 +57,16 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
     final captionColor = theme.colorScheme.onSurfaceVariant;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           '일기',
           style: TextStyle(
-            color: Color(0xFF2D2D2D),
+            color: theme.colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -76,172 +76,400 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _detailLabel(theme, '날짜'),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today, size: 18, color: captionColor),
-                      const SizedBox(width: 8),
-                      Text(
-                        DateFormat('yyyy년 M월 d일').format(entry.date),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  _detailLabel(theme, '시간'),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time, size: 18, color: captionColor),
-                      const SizedBox(width: 8),
-                      Text(
-                        DateFormat('a h:mm', 'ko').format(entry.date),
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ],
-                  ),
-                  if (entry.weatherText.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _detailLabel(theme, '날씨'),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.wb_sunny_outlined, size: 18, color: captionColor),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            entry.weatherText,
-                            style: theme.textTheme.bodyMedium,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (entry.placeText.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _detailLabel(theme, '장소'),
-                    const SizedBox(height: 4),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _detailCard(
+                theme,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.place_outlined, size: 18, color: captionColor),
-                        const SizedBox(width: 8),
                         Expanded(
-                          child: Text(
-                            entry.placeText,
-                            style: theme.textTheme.bodyMedium,
-                            maxLines: 5,
-                            overflow: TextOverflow.ellipsis,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _detailLabel(theme, '날짜'),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.calendar_today, size: 18, color: captionColor),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _formatDateWithWeekday(entry.date),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _detailLabel(theme, '시간'),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.access_time, size: 18, color: captionColor),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    DateFormat('a h:mm', 'ko').format(entry.date),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (entry.weatherText.isNotEmpty || entry.placeText.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _detailLabel(theme, '날씨'),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.wb_sunny_outlined, size: 18, color: captionColor),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        entry.weatherText.isEmpty ? '—' : entry.weatherText,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _detailLabel(theme, '장소'),
+                                const SizedBox(height: 4),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Icon(Icons.place_outlined, size: 18, color: captionColor),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        entry.placeText.isEmpty ? '—' : entry.placeText,
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              _detailCard(
+                theme,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _detailLabel(theme, '감정'),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ...entry.emotionTags.map(
+                          (tag) {
+                            final isDark = theme.brightness == Brightness.dark;
+                            final tagBg = isDark
+                                ? theme.colorScheme.surfaceContainerHighest
+                                : primary;
+                            final tagFg = isDark
+                                ? theme.colorScheme.onSurface
+                                : Colors.white;
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: tagBg,
+                                borderRadius: BorderRadius.circular(20),
+                                border: isDark
+                                    ? Border.all(
+                                        color: theme.colorScheme.outline,
+                                        width: 1,
+                                      )
+                                    : null,
+                              ),
+                              child: Text(
+                                tag,
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: tagFg,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _detailLabel(theme, '강도'),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _IntensityGradientBar(value: entry.intensity),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${entry.intensity}/10',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: captionColor,
                           ),
                         ),
                       ],
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  _detailLabel(theme, '감정'),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      ...entry.emotionTags.map(
-                        (tag) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: primary.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            tag,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: primary,
-                              fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (entry.content.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height * 0.35,
+                    ),
+                    child: _detailCard(
+                      theme,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _detailLabel(theme, '일기'),
+                          const SizedBox(height: 8),
+                          Text(
+                            entry.content,
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              height: 1.5,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: intensityColor(entry.intensity).withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          '강도 ${entry.intensity}/10',
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                    ),
+                  ),
+                ),
+              ],
+              if (entry.imagePaths.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _detailCard(
+                  theme,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _detailLabel(theme, '사진'),
+                      const SizedBox(height: 8),
+                      ...image_preview.buildDetailImages(entry.imagePaths),
                     ],
                   ),
-                  if (entry.content.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    _detailLabel(theme, '내용'),
-                    const SizedBox(height: 8),
-                    Text(
-                      entry.content,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.5,
-                        color: const Color(0xFF2D2D2D),
-                      ),
-                    ),
-                  ],
-                  if (entry.imagePaths.isNotEmpty) ...[
-                    const SizedBox(height: 24),
-                    _detailLabel(theme, '첨부된 사진'),
-                    const SizedBox(height: 8),
-                    ...image_preview.buildDetailImages(entry.imagePaths),
-                  ],
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: FilledButton.icon(
-                      onPressed: () => Navigator.pushReplacementNamed(
-                        context,
-                        '/edit',
-                        arguments: entry.id,
-                      ).then((_) => _load()),
-                      icon: const Icon(Icons.edit_outlined, size: 22),
-                      label: const Text('수정하기'),
-                      style: FilledButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
+                ),
+              ],
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.pushReplacementNamed(
+                    context,
+                    '/edit',
+                    arguments: entry.id,
+                  ).then((_) => _load()),
+                  icon: const Icon(Icons.edit_outlined, size: 22),
+                  label: const Text('수정'),
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Text(
-                      '작성: ${DateFormat('yyyy.MM.dd HH:mm').format(entry.createdAt)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: captionColor,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirmDelete(context, entry),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    size: 22,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  label: Text(
+                    '삭제',
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: theme.colorScheme.outline),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  '작성: ${DateFormat('yyyy.MM.dd HH:mm').format(entry.createdAt)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: captionColor,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context, DiaryEntry entry) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('일기 삭제'),
+        content: const Text('이 일기를 삭제할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await context.read<DiaryProvider>().deleteEntry(entry.id);
+    if (mounted) Navigator.pop(context);
+  }
+
+  String _formatDateWithWeekday(DateTime date) {
+    const weekdays = '월화수목금토일';
+    return '${date.year}년 ${date.month}월 ${date.day}일 (${weekdays.substring(date.weekday - 1, date.weekday)})';
+  }
+
+  Widget _detailCard(ThemeData theme, {required Widget child}) {
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black12,
+      color: theme.cardTheme.color,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: child,
       ),
     );
   }
 
   Widget _detailLabel(ThemeData theme, String text) {
     return Text(
-      text.toUpperCase(),
-      style: theme.textTheme.labelSmall?.copyWith(
+      text,
+      style: theme.textTheme.labelMedium?.copyWith(
         color: theme.colorScheme.onSurfaceVariant,
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
       ),
+    );
+  }
+}
+
+class _IntensityGradientBar extends StatelessWidget {
+  const _IntensityGradientBar({required this.value});
+
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final trackColor = theme.brightness == Brightness.dark
+        ? Colors.grey.shade700
+        : Colors.grey.shade200;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final fraction = (value.clamp(1, 10)) / 10;
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: SizedBox(
+            height: 8,
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                Container(
+                  width: width,
+                  decoration: BoxDecoration(
+                    color: trackColor,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                SizedBox(
+                  width: width * fraction,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      gradient: LinearGradient(
+                        colors: [
+                          intensityColor(1),
+                          intensityColor(3),
+                          intensityColor(5),
+                          intensityColor(7),
+                          intensityColor(10),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

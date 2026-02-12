@@ -4,7 +4,6 @@ enum AppTheme {
   dark,
   blue,
   green,
-  purple,
 }
 
 class AppSettings {
@@ -44,11 +43,15 @@ class AppSettings {
   }
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
+    final themeName = json['theme'] as String?;
+    final theme = (themeName == 'purple' || themeName == null)
+        ? AppTheme.light
+        : AppTheme.values.firstWhere(
+              (e) => e.name == themeName,
+              orElse: () => AppTheme.light,
+            );
     return AppSettings(
-      theme: AppTheme.values.firstWhere(
-        (e) => e.name == json['theme'],
-        orElse: () => AppTheme.light,
-      ),
+      theme: theme,
       notificationEnabled: json['notificationEnabled'] as bool? ?? true,
       notificationHour: (json['notificationHour'] as num?)?.toInt() ?? 21,
       notificationMinute: (json['notificationMinute'] as num?)?.toInt() ?? 0,

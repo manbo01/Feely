@@ -15,40 +15,18 @@ class IntensitySlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '약함',
-              style: theme.textTheme.bodySmall,
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: intensityColor(value).withOpacity(0.3),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '$value/10',
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Text(
-              '강함',
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
-        ),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: intensityColor(value),
-            thumbColor: intensityColor(value),
+            inactiveTrackColor: Colors.grey.shade200,
+            thumbColor: primary,
+            overlayColor: primary.withOpacity(0.2),
+            trackHeight: 6,
           ),
           child: Slider(
             value: value.toDouble(),
@@ -57,6 +35,23 @@ class IntensitySlider extends StatelessWidget {
             divisions: 9,
             onChanged: (v) => onChanged(v.round()),
           ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              '약함',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            Text(
+              '강함',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
         ),
       ],
     );

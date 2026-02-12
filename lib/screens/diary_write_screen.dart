@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../constants/weather.dart';
 import '../models/diary_entry.dart';
+import '../theme/app_theme.dart';
 import '../providers/diary_provider.dart';
 import '../services/weather_service.dart';
 import '../widgets/emotion_chip_grid.dart';
@@ -125,26 +126,30 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
     final allTags = diaryProvider.allEmotionTags;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: theme.colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.entryId != null ? '일기 수정' : '새 일기',
-          style: const TextStyle(
-            color: Color(0xFF2D2D2D),
+          widget.entryId != null ? '일기 수정' : '일기 생성',
+          style: TextStyle(
+            color: theme.colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
+      body: GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        behavior: HitTestBehavior.opaque,
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
             _buildSectionLabel(theme, '날짜'),
             const SizedBox(height: 8),
             _buildDateLine(theme),
@@ -153,118 +158,160 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
             const SizedBox(height: 8),
             _buildTimeLine(theme),
             const SizedBox(height: 20),
-            _buildSectionLabel(theme, '날씨'),
-            const SizedBox(height: 8),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  flex: 2,
-                  child: DropdownButtonFormField<String>(
-                    value: _weatherDropdownValue,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.wb_sunny_outlined),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: weatherDropdownOptions
-                        .map((v) => DropdownMenuItem(value: v, child: Text(v)))
-                        .toList(),
-                    onChanged: (v) {
-                      if (v != null) setState(() => _weatherDropdownValue = v);
-                    },
+                Text(
+                  '날씨',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  height: 56,
-                  child: _WeatherAutoButton(
-                    loading: _weatherAutoLoading,
-                    onPressed: _onWeatherAuto,
-                  ),
+                const Spacer(),
+                _WeatherAutoButton(
+                  loading: _weatherAutoLoading,
+                  onPressed: _onWeatherAuto,
                 ),
               ],
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _weatherDropdownValue,
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: theme.colorScheme.primary.withOpacity(0.08),
+              ),
+              items: weatherDropdownOptions
+                  .map((v) => DropdownMenuItem(value: v, child: Text(v)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => _weatherDropdownValue = v);
+              },
             ),
             if (_weatherDropdownValue == weatherOptionCustom) ...[
               const SizedBox(height: 8),
               TextFormField(
                 controller: _weatherController,
-                decoration: const InputDecoration(
-                  hintText: '오늘 하늘은 어때요?',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: '오늘의 날씨는 어떤가요?',
+                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: theme.colorScheme.primary.withOpacity(0.08),
                 ),
               ),
             ],
             const SizedBox(height: 20),
-            _buildSectionLabel(theme, '장소'),
-            const SizedBox(height: 8),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _placeController,
-                    decoration: const InputDecoration(
-                      hintText: '어디에 계세요?',
-                      prefixIcon: Icon(Icons.place_outlined),
-                      border: OutlineInputBorder(),
-                    ),
+                Text(
+                  '장소',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(width: 8),
-                SizedBox(
-                  height: 56,
-                  child: _PlaceAutoButton(
-                    loading: _placeAutoLoading,
-                    onPressed: _onPlaceAuto,
-                  ),
+                const Spacer(),
+                _PlaceAutoButton(
+                  loading: _placeAutoLoading,
+                  onPressed: _onPlaceAuto,
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _placeController,
+              decoration: InputDecoration(
+                hintText: '어디에 계신가요?',
+                border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: theme.colorScheme.primary.withOpacity(0.08),
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildSectionLabel(theme, '어떤 감정인가요?'),
+            _buildSectionLabel(theme, '감정'),
             const SizedBox(height: 8),
             EmotionChipGrid(
               availableTags: allTags,
               selectedTags: _selectedEmotions,
               onChanged: (v) => setState(() => _selectedEmotions = v),
+              onAddNew: () => _showAddEmotionDialog(theme),
             ),
             const SizedBox(height: 24),
-            _buildSectionLabel(theme, '감정 강도'),
+            Row(
+              children: [
+                Text(
+                  '강도 ',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '$_intensity',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: intensityColor(_intensity),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 8),
             IntensitySlider(
               value: _intensity,
               onChanged: (v) => setState(() => _intensity = v),
             ),
             const SizedBox(height: 24),
-            _buildSectionLabel(theme, '내용'),
+            _buildSectionLabel(theme, '일기'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _contentController,
               maxLines: 6,
-              decoration: const InputDecoration(
-                hintText: 'Dear Diary, 오늘은...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: '오늘 하루는 무슨 일이 있었나요?',
+                border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
+                filled: true,
+                fillColor: theme.colorScheme.primary.withOpacity(0.08),
               ),
             ),
-            if (_imagePaths.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              _buildSectionLabel(theme, '첨부된 사진 (${_imagePaths.length}장)'),
-              const SizedBox(height: 8),
-              _buildImagePreviews(theme),
-            ],
             const SizedBox(height: 20),
-            OutlinedButton.icon(
-              onPressed: _pickImage,
-              icon: const Icon(Icons.add_a_photo_outlined),
-              label: const Text('사진 추가'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.primary,
-                side: BorderSide(color: theme.colorScheme.primary.withOpacity(0.6)),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            _buildSectionLabel(theme, '사진'),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: Material(
+                    color: theme.colorScheme.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: _pickImage,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_a_photo_outlined, size: 28, color: theme.colorScheme.primary),
+                          const SizedBox(height: 6),
+                          Text(
+                            'ADD',
+                            style: TextStyle(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                if (_imagePaths.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildImagePreviews(theme)),
+                ],
+              ],
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -272,17 +319,26 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
               height: 54,
               child: FilledButton.icon(
                 onPressed: _save,
-                icon: const Icon(Icons.check, size: 22),
-                label: const Text('저장'),
+                icon: Icon(Icons.check, size: 22, color: theme.colorScheme.onPrimary),
+                label: Text(
+                  'Save',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                ),
                 style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(26),
                   ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
           ],
+        ),
         ),
       ),
     );
@@ -298,7 +354,8 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
   }
 
   Widget _buildDateLine(ThemeData theme) {
-    final dateStr = '${_date.year}년 ${_date.month}월 ${_date.day}일';
+    const weekdays = '월화수목금토일';
+    final dateStr = '${_date.year}년 ${_date.month}월 ${_date.day}일 (${weekdays.substring(_date.weekday - 1, _date.weekday)})';
     return InkWell(
       onTap: () async {
         final picked = await showDatePicker(
@@ -318,9 +375,11 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
         }
       },
       child: InputDecorator(
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.calendar_today),
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          suffixIcon: const Icon(Icons.calendar_today),
+          border: const OutlineInputBorder(),
+          filled: true,
+          fillColor: theme.colorScheme.primary.withOpacity(0.08),
         ),
         child: Text(dateStr, style: theme.textTheme.bodyLarge),
       ),
@@ -328,8 +387,9 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
   }
 
   Widget _buildTimeLine(ThemeData theme) {
-    final timeStr =
-        '${_date.hour.toString().padLeft(2, '0')}:${_date.minute.toString().padLeft(2, '0')}';
+    final isAm = _date.hour < 12;
+    final hour12 = _date.hour == 0 ? 12 : (_date.hour > 12 ? _date.hour - 12 : _date.hour);
+    final timeStr = '${isAm ? '오전' : '오후'} $hour12:${_date.minute.toString().padLeft(2, '0')}';
     return InkWell(
       onTap: () async {
         final picked = await showTimePicker(
@@ -347,9 +407,11 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
         }
       },
       child: InputDecorator(
-        decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.access_time),
-          border: OutlineInputBorder(),
+        decoration: InputDecoration(
+          suffixIcon: const Icon(Icons.access_time),
+          border: const OutlineInputBorder(),
+          filled: true,
+          fillColor: theme.colorScheme.primary.withOpacity(0.08),
         ),
         child: Text(timeStr, style: theme.textTheme.bodyLarge),
       ),
@@ -458,6 +520,59 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
+  Future<void> _showAddEmotionDialog(ThemeData theme) async {
+    final controller = TextEditingController();
+    final provider = context.read<DiaryProvider>();
+    final added = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('새 감정 추가'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              hintText: '감정을 입력하세요',
+              border: OutlineInputBorder(),
+            ),
+            autofocus: true,
+            onSubmitted: (value) {
+              if (value.trim().isNotEmpty) {
+                Navigator.pop(context, true);
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('취소'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (controller.text.trim().isNotEmpty) {
+                  Navigator.pop(context, true);
+                }
+              },
+              child: const Text('추가'),
+            ),
+          ],
+        );
+      },
+    );
+    if (added != true || !mounted) return;
+    final text = controller.text.trim();
+    if (text.isEmpty) return;
+    controller.dispose();
+    final customTags = [...provider.customEmotionTags];
+    if (customTags.contains(text)) {
+      setState(() => _selectedEmotions = [..._selectedEmotions, text]);
+      return;
+    }
+    await provider.setCustomEmotionTags([...customTags, text]);
+    if (mounted) {
+      setState(() => _selectedEmotions = [..._selectedEmotions, text]);
+    }
+  }
+
   Future<void> _pickImage() async {
     try {
       final picker = ImagePicker();
@@ -484,15 +599,38 @@ class _WeatherAutoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: loading ? null : onPressed,
-      child: loading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Text('자동'),
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
+      decoration: BoxDecoration(
+        color: primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primary),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: loading ? null : onPressed,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: loading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: primary),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.auto_awesome, size: 16, color: primary),
+                      const SizedBox(width: 4),
+                      Text('자동', style: TextStyle(color: primary, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ],
+                  ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -508,15 +646,38 @@ class _PlaceAutoButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: loading ? null : onPressed,
-      child: loading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : const Text('자동'),
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
+      decoration: BoxDecoration(
+        color: primary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: primary),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: loading ? null : onPressed,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: loading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: primary),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.auto_awesome, size: 16, color: primary),
+                      const SizedBox(width: 4),
+                      Text('자동', style: TextStyle(color: primary, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ],
+                  ),
+          ),
+        ),
+      ),
     );
   }
 }

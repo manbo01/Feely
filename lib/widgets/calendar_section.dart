@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class CalendarSection extends StatelessWidget {
   const CalendarSection({
@@ -20,14 +19,14 @@ class CalendarSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final monthFormat = DateFormat('MMMM yyyy', 'ko');
+    final monthYearText = '${currentMonth.year}년 ${currentMonth.month}월';
     final days = _buildDaysInMonth(currentMonth);
     final weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     final primary = theme.colorScheme.primary;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: const Color(0xFFF8F7FC),
+      color: theme.cardTheme.color,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: LayoutBuilder(
@@ -57,10 +56,10 @@ class CalendarSection extends StatelessWidget {
                       },
                     ),
                     Text(
-                      monthFormat.format(currentMonth),
+                      monthYearText,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF2D2D2D),
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     IconButton(
@@ -122,15 +121,10 @@ class CalendarSection extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           decoration: BoxDecoration(
                             color: isSelected ? primary : null,
-                            shape: hasEntry && !isSelected
-                                ? BoxShape.circle
-                                : BoxShape.rectangle,
+                            shape: isSelected ? BoxShape.circle : BoxShape.rectangle,
                             borderRadius: isSelected
-                                ? BorderRadius.circular(8)
-                                : null,
-                            border: hasEntry && !isSelected
-                                ? Border.all(color: primary, width: 1.5)
-                                : null,
+                                ? null
+                                : BorderRadius.circular(8),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -143,8 +137,8 @@ class CalendarSection extends StatelessWidget {
                                       ? FontWeight.bold
                                       : FontWeight.normal,
                                   color: isSelected
-                                      ? Colors.white
-                                      : const Color(0xFF2D2D2D),
+                                      ? theme.colorScheme.onPrimary
+                                      : theme.colorScheme.onSurface,
                                 ),
                               ),
                               if (hasEntry && !isSelected)

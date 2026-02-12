@@ -27,11 +27,11 @@ class DiaryCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      color: Colors.white,
-      elevation: 0,
+      color: theme.cardTheme.color ?? theme.colorScheme.surface,
+      elevation: 2,
+      shadowColor: Colors.black12,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: primary.withOpacity(0.15), width: 1),
       ),
       child: InkWell(
         onTap: onTap,
@@ -50,46 +50,65 @@ class DiaryCard extends StatelessWidget {
                       runSpacing: 6,
                       children: entry.emotionTags
                           .map(
-                            (tag) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: primary.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                tag,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: primary,
-                                  fontWeight: FontWeight.w600,
+                            (tag) {
+                              final isDark = theme.brightness == Brightness.dark;
+                              final tagBg = isDark
+                                  ? theme.colorScheme.surfaceContainerHighest
+                                  : primary;
+                              final tagFg = isDark
+                                  ? theme.colorScheme.onSurface
+                                  : Colors.white;
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
                                 ),
-                              ),
-                            ),
+                                decoration: BoxDecoration(
+                                  color: tagBg,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isDark
+                                      ? Border.all(
+                                          color: theme.colorScheme.outline,
+                                          width: 1,
+                                        )
+                                      : null,
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: tagFg,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            },
                           )
                           .toList(),
                     ),
                     const SizedBox(height: 6),
-                    Text(
-                      'Intensity: ${entry.intensity}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      timeStr,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '강도: ${entry.intensity}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          timeStr,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                     if (entry.content.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
                         contentPreview,
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF2D2D2D),
+                          color: theme.colorScheme.onSurface,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -119,8 +138,16 @@ class DiaryCard extends StatelessWidget {
                             ),
                           ],
                           if (entry.weatherText.isNotEmpty &&
-                              entry.placeText.isNotEmpty)
-                            const SizedBox(width: 8),
+                              entry.placeText.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Text(
+                              '·',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
                           if (entry.placeText.isNotEmpty) ...[
                             Icon(
                               Icons.place_outlined,

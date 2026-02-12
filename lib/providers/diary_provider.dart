@@ -19,6 +19,7 @@ class DiaryProvider with ChangeNotifier {
   bool get loaded => _loaded;
 
   List<String> get allEmotionTags => [...defaultEmotionTags, ..._customTags];
+  List<String> get customEmotionTags => List.unmodifiable(_customTags);
 
   Future<void> _load() async {
     try {

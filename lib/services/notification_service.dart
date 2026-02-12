@@ -49,6 +49,12 @@ class NotificationService {
         ?.requestPermissions(alert: true, badge: true);
   }
 
+  static const List<String> _reminderBodies = [
+    '지금 기분이 어때요?',
+    '무엇을 하고 계신가요?',
+    '지금 당신의 감정을 기록해보세요.',
+  ];
+
   Future<void> scheduleJournalReminder(AppSettings settings) async {
     await _plugin.cancel(journalReminderId);
     if (!settings.notificationEnabled) return;
@@ -66,11 +72,13 @@ class NotificationService {
       scheduled = scheduled.add(const Duration(days: 1));
     }
 
+    final body = (_reminderBodies..shuffle()).first;
+
     await schedule_impl.scheduleJournalReminderImpl(
       _plugin,
       journalReminderId,
       'Feely',
-      '오늘의 감정을 기록해 보세요.',
+      body,
       scheduled,
     );
   }

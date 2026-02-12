@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/diary_provider.dart';
+import '../route_observer.dart';
 import '../models/diary_entry.dart';
+import '../providers/diary_provider.dart';
 import '../widgets/calendar_section.dart';
 import '../widgets/diary_card.dart';
 
@@ -14,12 +15,13 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with RouteAware {
   late DateTime _selectedDate;
   late DateTime _currentMonth;
   Set<DateTime> _datesWithEntries = {};
   List<DiaryEntry> _entriesForDate = [];
   bool _initialFetchDone = false;
+  bool _routeObserverSubscribed = false;
 
   @override
   void initState() {
@@ -27,6 +29,29 @@ class _MainScreenState extends State<MainScreen> {
     final now = DateTime.now();
     _selectedDate = now;
     _currentMonth = DateTime(now.year, now.month, 1);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_routeObserverSubscribed) return;
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
+      _routeObserverSubscribed = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    final provider = context.read<DiaryProvider>();
+    _refresh(provider);
   }
 
   Future<void> _refresh(DiaryProvider provider) async {
@@ -54,29 +79,18 @@ class _MainScreenState extends State<MainScreen> {
     final primaryColor = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: IconButton(
-          icon: CircleAvatar(
-            radius: 18,
-            backgroundColor: primaryColor.withOpacity(0.2),
-            child: Icon(Icons.person_outline, size: 22, color: primaryColor),
-          ),
-          onPressed: () {},
-        ),
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+        elevation: 0,
+        centerTitle: true,
         title: Text(
           'Feely',
-          style: theme.appBarTheme.titleTextStyle?.copyWith(
-            color: const Color(0xFF2D2D2D),
-            fontWeight: FontWeight.w600,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: primaryColor,
+            fontWeight: FontWeight.w200,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_outlined, color: primaryColor),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: !diaryProvider.loaded
           ? const Center(child: CircularProgressIndicator())
@@ -114,9 +128,9 @@ class _MainScreenState extends State<MainScreen> {
                         children: [
                           Text(
                             '오늘의 일기',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF2D2D2D),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           TextButton(
@@ -133,16 +147,6 @@ class _MainScreenState extends State<MainScreen> {
                         ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        DateFormat('yyyy년 M월 d일').format(_selectedDate),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
                     if (_entriesForDate.isEmpty)
                       _EmptyDayPlaceholder(
                         onWrite: () => _openWriteForSelected(),
@@ -165,17 +169,36 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openWriteForSelected,
-        backgroundColor: primaryColor,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+      floatingActionButton: SizedBox(
+        width: 64,
+        height: 64,
+        child: Material(
+          color: primaryColor,
+          shape: const CircleBorder(),
+          elevation: 4,
+          shadowColor: Colors.black26,
+          child: InkWell(
+            onTap: _openWriteForSelected,
+            customBorder: const CircleBorder(),
+            child: Center(
+              child: Icon(
+                Icons.add,
+                color: theme.colorScheme.onPrimary,
+                size: 32,
+              ),
+            ),
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         height: 64,
         padding: EdgeInsets.zero,
-        notchMargin: 8,
+        notchMargin: 10,
         shape: const CircularNotchedRectangle(),
+        color: theme.colorScheme.surface,
+        elevation: 8,
+        shadowColor: Colors.black12,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -184,14 +207,34 @@ class _MainScreenState extends State<MainScreen> {
                 icon: Icons.bar_chart_outlined,
                 label: '통계',
                 onTap: () {},
+                color: primaryColor,
               ),
             ),
-            const SizedBox(width: 56),
+            SizedBox(
+              width: 80,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 28),
+                  FittedBox(
+                    child: Text(
+                      '일기 생성',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: primaryColor,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             Expanded(
               child: _NavItem(
                 icon: Icons.settings_outlined,
                 label: '설정',
                 onTap: () => Navigator.pushNamed(context, '/settings'),
+                color: primaryColor,
               ),
             ),
           ],
@@ -219,16 +262,17 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    required this.color,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.colorScheme.primary;
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -244,7 +288,7 @@ class _NavItem extends StatelessWidget {
               child: Text(
                 label,
                 style: theme.textTheme.labelSmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: color,
                   fontSize: 11,
                 ),
                 maxLines: 1,
@@ -280,7 +324,9 @@ class _EmptyDayPlaceholder extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               '이 날의 일기가 없습니다',
-              style: theme.textTheme.titleMedium,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
