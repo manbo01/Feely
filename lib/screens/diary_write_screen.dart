@@ -43,7 +43,13 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _date = widget.initialDate ?? now;
+    if (widget.entryId != null) {
+      _date = widget.initialDate ?? now;
+    } else {
+      // 일기 생성 시 현재 날짜·시간을 초기값으로
+      final base = widget.initialDate ?? now;
+      _date = DateTime(base.year, base.month, base.day, now.hour, now.minute);
+    }
     _selectedEmotions = [];
     _intensity = 5;
     if (widget.entryId != null) {
@@ -267,7 +273,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
               controller: _contentController,
               maxLines: 6,
               decoration: InputDecoration(
-                hintText: '오늘 하루는 무슨 일이 있었나요?',
+                hintText: '어떤 감정을 느끼고 계신가요? 그 이유는 무엇인지 알려주세요.',
                 border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
                 filled: true,
@@ -392,10 +398,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
     final timeStr = '${isAm ? '오전' : '오후'} $hour12:${_date.minute.toString().padLeft(2, '0')}';
     return InkWell(
       onTap: () async {
-        final picked = await showTimePicker(
-          context: context,
-          initialTime: TimeOfDay.fromDateTime(_date),
-        );
+        final picked = await _showScrollTimePicker(context, theme);
         if (picked != null) {
           setState(() => _date = DateTime(
             _date.year,
@@ -414,6 +417,22 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
           fillColor: theme.colorScheme.primary.withOpacity(0.08),
         ),
         child: Text(timeStr, style: theme.textTheme.bodyLarge),
+      ),
+    );
+  }
+
+  Future<TimeOfDay?> _showScrollTimePicker(BuildContext context, ThemeData theme) async {
+    final initialHour12 = _date.hour == 0 ? 12 : (_date.hour > 12 ? _date.hour - 12 : _date.hour);
+    final initialMinute = _date.minute;
+    final initialIsPm = _date.hour >= 12;
+
+    return showDialog<TimeOfDay>(
+      context: context,
+      builder: (context) => _ScrollTimePickerDialog(
+        theme: theme,
+        initialHour12: initialHour12,
+        initialMinute: initialMinute,
+        initialIsPm: initialIsPm,
       ),
     );
   }
@@ -523,9 +542,9 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
   Future<void> _showAddEmotionDialog(ThemeData theme) async {
     final controller = TextEditingController();
     final provider = context.read<DiaryProvider>();
-    final added = await showDialog<bool>(
+    final result = await showDialog<String>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('새 감정 추가'),
           content: TextField(
@@ -536,21 +555,19 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
             ),
             autofocus: true,
             onSubmitted: (value) {
-              if (value.trim().isNotEmpty) {
-                Navigator.pop(context, true);
-              }
+              final t = value.trim();
+              if (t.isNotEmpty) Navigator.pop(dialogContext, t);
             },
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text('취소'),
             ),
             FilledButton(
               onPressed: () {
-                if (controller.text.trim().isNotEmpty) {
-                  Navigator.pop(context, true);
-                }
+                final t = controller.text.trim();
+                if (t.isNotEmpty) Navigator.pop(dialogContext, t);
               },
               child: const Text('추가'),
             ),
@@ -558,19 +575,21 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
         );
       },
     );
-    if (added != true || !mounted) return;
-    final text = controller.text.trim();
-    if (text.isEmpty) return;
-    controller.dispose();
-    final customTags = [...provider.customEmotionTags];
-    if (customTags.contains(text)) {
-      setState(() => _selectedEmotions = [..._selectedEmotions, text]);
+    if (result == null || result.isEmpty || !mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
       return;
     }
-    await provider.setCustomEmotionTags([...customTags, text]);
-    if (mounted) {
-      setState(() => _selectedEmotions = [..._selectedEmotions, text]);
+    final text = result;
+    final customTags = [...provider.customEmotionTags];
+    final isNewTag = !customTags.contains(text);
+    if (isNewTag) {
+      await provider.setCustomEmotionTags([...customTags, text]);
     }
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.dispose();
+      if (mounted) setState(() => _selectedEmotions = [..._selectedEmotions, text]);
+    });
   }
 
   Future<void> _pickImage() async {
@@ -585,6 +604,127 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
         });
       }
     } catch (_) {}
+  }
+}
+
+class _ScrollTimePickerDialog extends StatefulWidget {
+  const _ScrollTimePickerDialog({
+    required this.theme,
+    required this.initialHour12,
+    required this.initialMinute,
+    required this.initialIsPm,
+  });
+
+  final ThemeData theme;
+  final int initialHour12;
+  final int initialMinute;
+  final bool initialIsPm;
+
+  @override
+  State<_ScrollTimePickerDialog> createState() => _ScrollTimePickerDialogState();
+}
+
+class _ScrollTimePickerDialogState extends State<_ScrollTimePickerDialog> {
+  late int _hour12;
+  late int _minute;
+  late bool _isPm;
+  late FixedExtentScrollController _hourController;
+  late FixedExtentScrollController _minuteController;
+  late FixedExtentScrollController _amPmController;
+
+  @override
+  void initState() {
+    super.initState();
+    _hour12 = widget.initialHour12;
+    _minute = widget.initialMinute;
+    _isPm = widget.initialIsPm;
+    _hourController = FixedExtentScrollController(initialItem: _hour12 - 1);
+    _minuteController = FixedExtentScrollController(initialItem: _minute);
+    _amPmController = FixedExtentScrollController(initialItem: _isPm ? 1 : 0);
+  }
+
+  @override
+  void dispose() {
+    _hourController.dispose();
+    _minuteController.dispose();
+    _amPmController.dispose();
+    super.dispose();
+  }
+
+  TimeOfDay _toTimeOfDay() {
+    var h = _hour12;
+    if (_isPm && h != 12) h += 12;
+    if (!_isPm && h == 12) h = 0;
+    return TimeOfDay(hour: h, minute: _minute);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const itemExtent = 44.0;
+    const wheelHeight = 180.0;
+    final hours = List.generate(12, (i) => i + 1);
+    final minutes = List.generate(60, (i) => i);
+    final amPm = ['오전', '오후'];
+
+    return AlertDialog(
+      title: const Text('시간 선택'),
+      content: SizedBox(
+        width: 260,
+        height: wheelHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: ListWheelScrollView(
+                controller: _hourController,
+                itemExtent: itemExtent,
+                diameterRatio: 1.2,
+                physics: const FixedExtentScrollPhysics(),
+                onSelectedItemChanged: (i) => setState(() => _hour12 = hours[i]),
+                children: hours
+                    .map((h) => Center(child: Text('$h', style: widget.theme.textTheme.titleLarge)))
+                    .toList(),
+              ),
+            ),
+            Text(':', style: widget.theme.textTheme.titleLarge?.copyWith(color: widget.theme.colorScheme.onSurface)),
+            Expanded(
+              child: ListWheelScrollView(
+                controller: _minuteController,
+                itemExtent: itemExtent,
+                diameterRatio: 1.2,
+                physics: const FixedExtentScrollPhysics(),
+                onSelectedItemChanged: (i) => setState(() => _minute = minutes[i]),
+                children: minutes
+                    .map((m) => Center(child: Text(m.toString().padLeft(2, '0'), style: widget.theme.textTheme.titleLarge)))
+                    .toList(),
+              ),
+            ),
+            Expanded(
+              child: ListWheelScrollView(
+                controller: _amPmController,
+                itemExtent: itemExtent,
+                diameterRatio: 1.2,
+                physics: const FixedExtentScrollPhysics(),
+                onSelectedItemChanged: (i) => setState(() => _isPm = i == 1),
+                children: amPm
+                    .map((s) => Center(child: Text(s, style: widget.theme.textTheme.titleMedium)))
+                    .toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('취소'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _toTimeOfDay()),
+          child: const Text('확인'),
+        ),
+      ],
+    );
   }
 }
 

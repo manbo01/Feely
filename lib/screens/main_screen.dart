@@ -3,8 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../route_observer.dart';
+import '../models/app_settings.dart';
 import '../models/diary_entry.dart';
 import '../providers/diary_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/calendar_section.dart';
 import '../widgets/diary_card.dart';
 
@@ -77,6 +79,10 @@ class _MainScreenState extends State<MainScreen> with RouteAware {
 
     final theme = Theme.of(context);
     final primaryColor = theme.colorScheme.primary;
+    final currentTheme = context.watch<SettingsProvider>().settings.theme;
+    final titleColor = (currentTheme == AppTheme.blue || currentTheme == AppTheme.green)
+        ? Colors.white
+        : primaryColor;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -87,7 +93,7 @@ class _MainScreenState extends State<MainScreen> with RouteAware {
         title: Text(
           'Feely',
           style: theme.textTheme.headlineSmall?.copyWith(
-            color: primaryColor,
+            color: titleColor,
             fontWeight: FontWeight.w200,
           ),
         ),

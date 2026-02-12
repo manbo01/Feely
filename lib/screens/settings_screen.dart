@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/app_settings.dart';
 import '../providers/settings_provider.dart';
 import '../theme/app_theme.dart';
+import 'emotion_tags_management_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -34,11 +35,15 @@ class SettingsScreen extends StatelessWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         children: [
           _sectionHeader(theme, Icons.palette_outlined, '테마 설정'),
           const SizedBox(height: 12),
           _themeSwatches(context, settings.theme),
+          const SizedBox(height: 28),
+          _sectionHeader(theme, Icons.label_outline, '감정 태그 관리'),
+          const SizedBox(height: 12),
+          _emotionTagsManagementTile(context, theme),
           const SizedBox(height: 28),
           _sectionHeader(theme, Icons.notifications_outlined, '일기 작성 알림'),
           const SizedBox(height: 12),
@@ -129,6 +134,40 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _emotionTagsManagementTile(BuildContext context, ThemeData theme) {
+    final primary = theme.colorScheme.primary;
+    return Material(
+      color: theme.cardTheme.color ?? theme.colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const EmotionTagsManagementScreen(),
+          ),
+        ),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '감정 태그 추가 및 삭제',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

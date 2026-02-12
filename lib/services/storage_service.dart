@@ -9,6 +9,7 @@ class StorageService {
   static const String _entriesBox = 'diary_entries';
   static const String _settingsBox = 'settings';
   static const String _customTagsKey = 'custom_emotion_tags';
+  static const String _hiddenDefaultTagsKey = 'hidden_default_emotion_tags';
   static const String _settingsKey = 'app_settings';
 
   Future<void> init() async {
@@ -77,6 +78,16 @@ class StorageService {
 
   Future<void> setCustomEmotionTags(List<String> tags) async {
     await _settings.put(_customTagsKey, jsonEncode(tags));
+  }
+
+  Future<List<String>> getHiddenDefaultEmotionTags() async {
+    final raw = _settings.get(_hiddenDefaultTagsKey);
+    if (raw == null) return [];
+    return List<String>.from(jsonDecode(raw as String) as List);
+  }
+
+  Future<void> setHiddenDefaultEmotionTags(List<String> tags) async {
+    await _settings.put(_hiddenDefaultTagsKey, jsonEncode(tags));
   }
 
   // ----- App settings -----

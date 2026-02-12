@@ -13,22 +13,30 @@ class DiaryProvider with ChangeNotifier {
   final DiaryRepository _repo;
   List<DiaryEntry> _allEntries = [];
   List<String> _customTags = [];
+  List<String> _hiddenDefaultTags = [];
   bool _loaded = false;
 
   List<DiaryEntry> get allEntries => List.unmodifiable(_allEntries);
   bool get loaded => _loaded;
 
-  List<String> get allEmotionTags => [...defaultEmotionTags, ..._customTags];
+  List<String> get allEmotionTags => [
+    ...defaultEmotionTags.where((t) => !_hiddenDefaultTags.contains(t)),
+    ..._customTags,
+  ];
   List<String> get customEmotionTags => List.unmodifiable(_customTags);
+  List<String> get hiddenDefaultTags => List.unmodifiable(_hiddenDefaultTags);
 
   Future<void> _load() async {
     try {
       final storage = StorageService();
+      await storage.init();
       _allEntries = await _repo.getAllEntries();
       _customTags = await storage.getCustomEmotionTags();
+      _hiddenDefaultTags = await storage.getHiddenDefaultEmotionTags();
     } catch (_) {
       _allEntries = [];
       _customTags = [];
+      _hiddenDefaultTags = [];
     }
     _loaded = true;
     notifyListeners();
@@ -62,6 +70,14 @@ class DiaryProvider with ChangeNotifier {
     await storage.init();
     await storage.setCustomEmotionTags(tags);
     _customTags = tags;
+    notifyListeners();
+  }
+
+  Future<void> setHiddenDefaultEmotionTags(List<String> tags) async {
+    final storage = StorageService();
+    await storage.init();
+    await storage.setHiddenDefaultEmotionTags(tags);
+    _hiddenDefaultTags = tags;
     notifyListeners();
   }
 }

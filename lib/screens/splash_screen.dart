@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   letterSpacing: -0.5,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 15),
               Text(
                 'How are you today?',
                 style: TextStyle(
@@ -86,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Preparing ...',
+                '로딩 중 ...',
                 style: TextStyle(
                   fontSize: 14,
                   color: FeelySplashColors.textSecondary,
