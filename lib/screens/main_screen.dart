@@ -212,7 +212,7 @@ class _MainScreenState extends State<MainScreen> with RouteAware {
               child: _NavItem(
                 icon: Icons.bar_chart_outlined,
                 label: '통계',
-                onTap: () {},
+                onTap: () => Navigator.pushNamed(context, '/analysis'),
                 color: primaryColor,
               ),
             ),
