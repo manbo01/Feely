@@ -94,7 +94,7 @@ class CalendarSection extends StatelessWidget {
                 const SizedBox(height: 6),
                 SizedBox(
                   height: gridHeight,
-                  child: GridView.count(
+                    child: GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 7,
@@ -110,6 +110,10 @@ class CalendarSection extends StatelessWidget {
                             selectedDate.month,
                             selectedDate.day,
                           );
+                      final today = DateTime.now();
+                      final isToday = dayOnly.year == today.year &&
+                          dayOnly.month == today.month &&
+                          dayOnly.day == today.day;
                       final hasEntry = datesWithEntries.any((d) =>
                           d.year == day.year &&
                           d.month == day.month &&
@@ -121,10 +125,18 @@ class CalendarSection extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 4),
                           decoration: BoxDecoration(
                             color: isSelected ? primary : null,
-                            shape: isSelected ? BoxShape.circle : BoxShape.rectangle,
-                            borderRadius: isSelected
+                            shape: (isSelected || isToday)
+                                ? BoxShape.circle
+                                : BoxShape.rectangle,
+                            borderRadius: (isSelected || isToday)
                                 ? null
                                 : BorderRadius.circular(8),
+                            border: !isSelected && isToday
+                                ? Border.all(
+                                    color: primary.withOpacity(0.9),
+                                    width: 1.6,
+                                  )
+                                : null,
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
