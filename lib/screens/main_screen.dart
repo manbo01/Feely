@@ -9,6 +9,7 @@ import '../providers/diary_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/calendar_section.dart';
 import '../widgets/diary_card.dart';
+import '../widgets/ad_banner_widget.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -197,52 +198,42 @@ class _MainScreenState extends State<MainScreen> with RouteAware {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        height: 64,
-        padding: EdgeInsets.zero,
-        notchMargin: 10,
-        shape: const CircularNotchedRectangle(),
+      bottomNavigationBar: Container(
         color: theme.colorScheme.surface,
-        elevation: 8,
-        shadowColor: Colors.black12,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: _NavItem(
-                icon: Icons.bar_chart_outlined,
-                label: '통계',
-                onTap: () => Navigator.pushNamed(context, '/analysis'),
-                color: primaryColor,
-              ),
-            ),
-            SizedBox(
-              width: 80,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
+            BottomAppBar(
+              height: 60,
+              padding: EdgeInsets.zero,
+              notchMargin: 10,
+              shape: const CircularNotchedRectangle(),
+              color: Colors.transparent,
+              elevation: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  const SizedBox(height: 28),
-                  FittedBox(
-                    child: Text(
-                      '일기 생성',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: primaryColor,
-                        fontSize: 11,
-                      ),
+                  Expanded(
+                    child: _NavItem(
+                      icon: Icons.bar_chart_outlined,
+                      label: '통계',
+                      onTap: () => Navigator.pushNamed(context, '/analysis'),
+                      color: primaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 80),
+                  Expanded(
+                    child: _NavItem(
+                      icon: Icons.settings_outlined,
+                      label: '설정',
+                      onTap: () => Navigator.pushNamed(context, '/settings'),
+                      color: primaryColor,
                     ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.settings_outlined,
-                label: '설정',
-                onTap: () => Navigator.pushNamed(context, '/settings'),
-                color: primaryColor,
-              ),
-            ),
+            const AdBannerWidget(),
           ],
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'services/ad_service.dart';
 
 import 'app.dart';
 import 'config/naver_map_config.dart';
@@ -9,6 +10,7 @@ import 'src/naver_map_platform_io.dart' if (dart.library.html) 'src/naver_map_pl
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AdService.init();
   try {
     await initializeDateFormatting('ko', null);
   } catch (_) {}
