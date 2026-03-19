@@ -4,9 +4,9 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 class AdService {
   static String get bannerAdUnitId {
     if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/6300978111'; // Android 테스트 ID
+      return 'ca-app-pub-5728309026398735/3016837383'; // Android
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/2934735716'; // iOS 테스트 ID
+      return 'ca-app-pub-5728309026398735/5024620875'; // iOS
     }
     throw UnsupportedError("Unsupported platform");
   }
