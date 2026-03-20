@@ -46,7 +46,7 @@ class NotificationService {
     await _plugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(alert: true, badge: true);
+        ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
   static const List<String> _reminderBodies = [

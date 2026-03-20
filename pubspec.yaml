@@ -1,7 +1,7 @@
 name: feely
 description: Feely - 감정 일기 앱. 감정 변화를 기록하고 시각적으로 확인합니다.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -503,9 +503,9 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
         pos.longitude,
       );
       if (mounted && text != null) {
+        final condition = text.split(' ').first;
         setState(() {
-          _weatherDropdownValue = weatherOptionCustom;
-          _weatherController.text = text;
+          _applyWeatherFromText(condition);
         });
       } else if (mounted) {
         _showSnackBar('날씨를 가져올 수 없습니다.');

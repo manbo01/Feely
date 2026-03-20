@@ -25,6 +25,7 @@ Future<void> scheduleJournalReminderImpl(
     details,
     androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
     uiLocalNotificationDateInterpretation:
-        UILocalNotificationDateInterpretation.absoluteTime,
+        UILocalNotificationDateInterpretation.wallClockTime,
+    matchDateTimeComponents: DateTimeComponents.time,
   );
 }
