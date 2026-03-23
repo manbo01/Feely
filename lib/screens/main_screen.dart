@@ -9,7 +9,6 @@ import '../providers/diary_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/calendar_section.dart';
 import '../widgets/diary_card.dart';
-import '../widgets/ad_banner_widget.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -217,7 +216,6 @@ class _MainScreenState extends State<MainScreen> with RouteAware {
                 ],
               ),
             ),
-            const AdBannerWidget(),
           ],
         ),
       ),

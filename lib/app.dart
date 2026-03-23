@@ -11,6 +11,7 @@ import 'screens/main_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
+import 'widgets/ad_banner_widget.dart';
 
 class FeelyApp extends StatelessWidget {
   const FeelyApp({super.key});
@@ -43,42 +44,58 @@ class FeelyApp extends StatelessWidget {
             );
           }
           final theme = AppThemeData.forTheme(settingsProvider.settings.theme);
-          return MaterialApp(
-            title: 'Feely',
-            theme: theme,
-            locale: const Locale('ko'),
-            debugShowCheckedModeBanner: false,
-            navigatorObservers: [routeObserver],
-            home: const SplashThenMain(child: MainScreen()),
-            routes: {
-              '/analysis': (context) => const AnalysisScreen(),
-              '/settings': (context) => const SettingsScreen(),
-            },
-            onGenerateRoute: (settings) {
-              if (settings.name == '/detail') {
-                final id = settings.arguments as String?;
-                if (id != null) {
-                  return MaterialPageRoute(
-                    builder: (context) => DiaryDetailScreen(entryId: id),
-                  );
-                }
-              }
-              if (settings.name == '/edit') {
-                final id = settings.arguments as String?;
-                if (id != null) {
-                  return MaterialPageRoute(
-                    builder: (context) => DiaryWriteScreen(entryId: id),
-                  );
-                }
-              }
-              if (settings.name == '/write') {
-                final date = settings.arguments as DateTime?;
-                return MaterialPageRoute(
-                  builder: (context) => DiaryWriteScreen(initialDate: date),
-                );
-              }
-              return null;
-            },
+          return Directionality(
+            textDirection: TextDirection.ltr,
+            child: Column(
+              children: [
+                Expanded(
+                  child: MaterialApp(
+                    title: 'Feely',
+                    theme: theme,
+                    locale: const Locale('ko'),
+                    debugShowCheckedModeBanner: false,
+                    navigatorObservers: [routeObserver],
+                    home: const SplashThenMain(child: MainScreen()),
+                    routes: {
+                      '/analysis': (context) => const AnalysisScreen(),
+                      '/settings': (context) => const SettingsScreen(),
+                    },
+                    onGenerateRoute: (settings) {
+                      if (settings.name == '/detail') {
+                        final id = settings.arguments as String?;
+                        if (id != null) {
+                          return MaterialPageRoute(
+                            builder: (context) =>
+                                DiaryDetailScreen(entryId: id),
+                          );
+                        }
+                      }
+                      if (settings.name == '/edit') {
+                        final id = settings.arguments as String?;
+                        if (id != null) {
+                          return MaterialPageRoute(
+                            builder: (context) =>
+                                DiaryWriteScreen(entryId: id),
+                          );
+                        }
+                      }
+                      if (settings.name == '/write') {
+                        final date = settings.arguments as DateTime?;
+                        return MaterialPageRoute(
+                          builder: (context) =>
+                              DiaryWriteScreen(initialDate: date),
+                        );
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                Container(
+                  color: theme.scaffoldBackgroundColor,
+                  child: const AdBannerWidget(),
+                ),
+              ],
+            ),
           );
         },
       ),

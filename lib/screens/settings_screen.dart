@@ -2,14 +2,84 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/app_settings.dart';
+import '../providers/diary_provider.dart';
 import '../providers/settings_provider.dart';
+import '../services/backup_service.dart';
 import '../theme/app_theme.dart';
 import 'emotion_tags_management_screen.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.1';
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _isExporting = false;
+  bool _isImporting = false;
+
+  Future<void> _exportData() async {
+    setState(() => _isExporting = true);
+    try {
+      await BackupService().exportData();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('내보내기 실패: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
+  }
+
+  Future<void> _importData() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('데이터 가져오기'),
+        content: const Text('기존 데이터에 백업 데이터가 병합됩니다. 계속할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('가져오기'),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    setState(() => _isImporting = true);
+    try {
+      final count = await BackupService().importData();
+      if (count == null) {
+        if (mounted) setState(() => _isImporting = false);
+        return;
+      }
+      if (mounted) {
+        // DiaryProvider 새로고침
+        context.read<DiaryProvider>();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$count개의 일기를 가져왔습니다.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('가져오기 실패: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isImporting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +119,7 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _notificationCard(context, settings),
           const SizedBox(height: 28),
-          _sectionHeader(theme, Icons.storage_outlined, '데이터 관리 (준비 중)'),
+          _sectionHeader(theme, Icons.storage_outlined, '데이터 관리'),
           const SizedBox(height: 8),
           Text(
             '당신의 데이터를 안전하게 관리하세요 :)',
@@ -63,8 +133,14 @@ class SettingsScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.download_outlined, size: 22),
+                  onPressed: _isImporting ? null : _importData,
+                  icon: _isImporting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.download_outlined, size: 22),
                   label: const Text('가져오기'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: primary,
@@ -79,8 +155,14 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.upload_outlined, size: 22),
+                  onPressed: _isExporting ? null : _exportData,
+                  icon: _isExporting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.upload_outlined, size: 22),
                   label: const Text('내보내기'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: primary,
@@ -99,7 +181,7 @@ class SettingsScreen extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  'Feely v$appVersion',
+                  'Feely v${SettingsScreen.appVersion}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
