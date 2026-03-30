@@ -111,59 +111,62 @@ class CalendarSection extends StatelessWidget {
                             selectedDate.day,
                           );
                       final today = DateTime.now();
-                      final isToday = dayOnly.year == today.year &&
-                          dayOnly.month == today.month &&
-                          dayOnly.day == today.day;
+                      final todayOnly = DateTime(today.year, today.month, today.day);
+                      final isToday = dayOnly == todayOnly;
+                      final isFuture = dayOnly.isAfter(todayOnly);
                       final hasEntry = datesWithEntries.any((d) =>
                           d.year == day.year &&
                           d.month == day.month &&
                           d.day == day.day);
 
                       return GestureDetector(
-                        onTap: () => onDateSelected(day),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isSelected ? primary : null,
-                            shape: (isSelected || isToday)
-                                ? BoxShape.circle
-                                : BoxShape.rectangle,
-                            borderRadius: (isSelected || isToday)
-                                ? null
-                                : BorderRadius.circular(8),
-                            border: !isSelected && isToday
-                                ? Border.all(
-                                    color: primary.withOpacity(0.9),
-                                    width: 1.6,
-                                  )
-                                : null,
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${day.day}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  color: isSelected
-                                      ? theme.colorScheme.onPrimary
-                                      : theme.colorScheme.onSurface,
-                                ),
-                              ),
-                              if (hasEntry && !isSelected)
-                                Container(
-                                  width: 5,
-                                  height: 5,
-                                  margin: const EdgeInsets.only(top: 2),
-                                  decoration: BoxDecoration(
-                                    color: primary,
-                                    shape: BoxShape.circle,
+                        onTap: isFuture ? null : () => onDateSelected(day),
+                        child: Opacity(
+                          opacity: isFuture ? 0.3 : 1.0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isSelected && !isFuture ? primary : null,
+                              shape: (isSelected || isToday)
+                                  ? BoxShape.circle
+                                  : BoxShape.rectangle,
+                              borderRadius: (isSelected || isToday)
+                                  ? null
+                                  : BorderRadius.circular(8),
+                              border: !isSelected && isToday
+                                  ? Border.all(
+                                      color: primary.withOpacity(0.9),
+                                      width: 1.6,
+                                    )
+                                  : null,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${day.day}',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: isSelected && !isFuture
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isSelected && !isFuture
+                                        ? theme.colorScheme.onPrimary
+                                        : theme.colorScheme.onSurface,
                                   ),
                                 ),
-                            ],
+                                if (hasEntry && !isSelected)
+                                  Container(
+                                    width: 5,
+                                    height: 5,
+                                    margin: const EdgeInsets.only(top: 2),
+                                    decoration: BoxDecoration(
+                                      color: primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       );

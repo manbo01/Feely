@@ -11,7 +11,7 @@ import 'emotion_tags_management_screen.dart';
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
-  static const String appVersion = '1.0.1';
+  static const String appVersion = '1.0.2';
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -24,7 +24,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _exportData() async {
     setState(() => _isExporting = true);
     try {
-      await BackupService().exportData();
+      await BackupService().exportData(context);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -189,6 +189,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Made with love for your peace of mind',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Special thanks to kasper, green, jiwoo, 까치, 예감, 이장님',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                     fontSize: 12,

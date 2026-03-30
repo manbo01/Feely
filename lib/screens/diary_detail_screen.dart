@@ -78,120 +78,33 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _detailCard(
-                theme,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _detailLabel(theme, '날짜'),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(Icons.calendar_today, size: 18, color: captionColor),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _formatDateWithWeekday(entry.date),
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _detailLabel(theme, '시간'),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(Icons.access_time, size: 18, color: captionColor),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    DateFormat('a h:mm', 'ko').format(entry.date),
-                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (entry.weatherText.isNotEmpty || entry.placeText.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _detailLabel(theme, '날씨'),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.wb_sunny_outlined, size: 18, color: captionColor),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        entry.weatherText.isEmpty ? '—' : entry.weatherText,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: theme.colorScheme.onSurface,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _detailLabel(theme, '장소'),
-                                const SizedBox(height: 4),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Icon(Icons.place_outlined, size: 18, color: captionColor),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        entry.placeText.isEmpty ? '—' : entry.placeText,
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: theme.colorScheme.onSurface,
-                                        ),
-                                        maxLines: 3,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
+              _detailInfoTile(theme, captionColor,
+                icon: Icons.calendar_today,
+                label: '날짜',
+                value: _formatDateWithWeekday(entry.date),
               ),
+              const SizedBox(height: 8),
+              _detailInfoTile(theme, captionColor,
+                icon: Icons.access_time,
+                label: '시간',
+                value: DateFormat('a h:mm', 'ko').format(entry.date),
+              ),
+              if (entry.weatherText.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _detailInfoTile(theme, captionColor,
+                  icon: Icons.wb_sunny_outlined,
+                  label: '날씨',
+                  value: entry.weatherText,
+                ),
+              ],
+              if (entry.placeText.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _detailInfoTile(theme, captionColor,
+                  icon: Icons.place_outlined,
+                  label: '장소',
+                  value: entry.placeText,
+                ),
+              ],
               const SizedBox(height: 16),
               _detailCard(
                 theme,
@@ -389,6 +302,38 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen> {
   String _formatDateWithWeekday(DateTime date) {
     const weekdays = '월화수목금토일';
     return '${date.year}년 ${date.month}월 ${date.day}일 (${weekdays.substring(date.weekday - 1, date.weekday)})';
+  }
+
+  Widget _detailInfoTile(ThemeData theme, Color captionColor, {
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return _detailCard(
+      theme,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: captionColor),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _detailLabel(theme, label),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _detailCard(ThemeData theme, {required Widget child}) {

@@ -230,8 +230,14 @@ class EmotionTagsManagementScreen extends StatelessWidget {
       if (result == null || result is! String) return;
       final text = (result as String).trim();
       if (text.isEmpty) return;
+      final allTags = provider.allEmotionTags;
+      if (allTags.contains(text)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('이미 존재하는 감정 태그입니다.')),
+        );
+        return;
+      }
       final custom = [...provider.customEmotionTags];
-      if (custom.contains(text)) return;
       provider.setCustomEmotionTags([...custom, text]);
     });
   }

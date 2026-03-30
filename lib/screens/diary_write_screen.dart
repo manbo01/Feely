@@ -364,19 +364,29 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
     final dateStr = '${_date.year}년 ${_date.month}월 ${_date.day}일 (${weekdays.substring(_date.weekday - 1, _date.weekday)})';
     return InkWell(
       onTap: () async {
+        final now = DateTime.now();
         final picked = await showDatePicker(
           context: context,
-          initialDate: _date,
+          initialDate: _date.isAfter(now) ? now : _date,
           firstDate: DateTime(2020),
-          lastDate: DateTime(2030),
+          lastDate: DateTime(now.year, now.month, now.day),
         );
         if (picked != null) {
+          final isToday = picked.year == now.year &&
+              picked.month == now.month &&
+              picked.day == now.day;
+          var hour = _date.hour;
+          var minute = _date.minute;
+          if (isToday && (hour > now.hour || (hour == now.hour && minute > now.minute))) {
+            hour = now.hour;
+            minute = now.minute;
+          }
           setState(() => _date = DateTime(
             picked.year,
             picked.month,
             picked.day,
-            _date.hour,
-            _date.minute,
+            hour,
+            minute,
           ));
         }
       },
@@ -400,13 +410,19 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
       onTap: () async {
         final picked = await _showScrollTimePicker(context, theme);
         if (picked != null) {
-          setState(() => _date = DateTime(
-            _date.year,
-            _date.month,
-            _date.day,
-            picked.hour,
-            picked.minute,
-          ));
+          final now = DateTime.now();
+          final candidate = DateTime(
+            _date.year, _date.month, _date.day,
+            picked.hour, picked.minute,
+          );
+          final isToday = _date.year == now.year &&
+              _date.month == now.month &&
+              _date.day == now.day;
+          if (isToday && candidate.isAfter(now)) {
+            _showSnackBar('현재 시간 이후는 선택할 수 없습니다.');
+            return;
+          }
+          setState(() => _date = candidate);
         }
       },
       child: InputDecorator(
@@ -580,11 +596,16 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen> {
       return;
     }
     final text = result;
-    final customTags = [...provider.customEmotionTags];
-    final isNewTag = !customTags.contains(text);
-    if (isNewTag) {
-      await provider.setCustomEmotionTags([...customTags, text]);
+    final allTags = provider.allEmotionTags;
+    if (allTags.contains(text)) {
+      if (mounted) {
+        _showSnackBar('이미 존재하는 감정 태그입니다.');
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+      return;
     }
+    final customTags = [...provider.customEmotionTags];
+    await provider.setCustomEmotionTags([...customTags, text]);
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.dispose();

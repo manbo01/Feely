@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -13,7 +14,7 @@ class BackupService {
   final StorageService _storage = StorageService();
 
   /// 모든 데이터를 JSON 파일로 내보내고 공유 시트를 띄운다.
-  Future<void> exportData() async {
+  Future<void> exportData(BuildContext context) async {
     final entries = await _storage.getAllEntries();
     final customTags = await _storage.getCustomEmotionTags();
     final hiddenTags = await _storage.getHiddenDefaultEmotionTags();
@@ -35,9 +36,12 @@ class BackupService {
     final file = File('${dir.path}/feely_backup_$dateStr.json');
     await file.writeAsString(jsonStr);
 
+    final box = context.findRenderObject() as RenderBox?;
     await Share.shareXFiles(
       [XFile(file.path)],
       subject: 'Feely 백업 데이터',
+      sharePositionOrigin:
+          box != null ? box.localToGlobal(Offset.zero) & box.size : Rect.zero,
     );
   }
 

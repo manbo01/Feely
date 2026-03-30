@@ -30,12 +30,17 @@ class LocationService {
       final list = await placemarkFromCoordinates(lat, lng);
       if (list.isEmpty) return null;
       final p = list.first;
-      final parts = <String>[
-        if (p.country?.isNotEmpty == true) p.country!,
-        if (p.administrativeArea?.isNotEmpty == true) p.administrativeArea!,
-        if (p.locality?.isNotEmpty == true) p.locality!,
-        if (p.street?.isNotEmpty == true) p.street!,
-      ];
+      final parts = <String>[];
+      void addIfNew(String? value) {
+        if (value != null && value.isNotEmpty && !parts.contains(value)) {
+          parts.add(value);
+        }
+      }
+      addIfNew(p.country);
+      addIfNew(p.administrativeArea);
+      addIfNew(p.locality);
+      addIfNew(p.subLocality);
+      addIfNew(p.street);
       return parts.isEmpty ? null : parts.join(' ');
     } catch (_) {
       return null;
